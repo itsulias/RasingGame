@@ -1,0 +1,226 @@
+using System;                            
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+// Подключение библиотек на С++
+//#include <iostream>
+//#include <Windows.h>
+//#include <vector>
+//#include <cstdlib>
+//#include <ctime>
+
+namespace RacingGame      //using namespace std; на С++
+{
+    public partial class Form1 : Form
+    {
+        // Переменные для перемещения формы
+        private Point pos;
+        private bool dragging, lose = false;
+
+        // Счетчик монет
+        private int countCoins = 0;
+        public Form1()
+        {
+            InitializeComponent();
+            // Привязка обработчиков событий для перемещения формы
+            bg1.MouseDown += MouseClickDown;
+            bg1.MouseUp += MouseClickUp;
+            bg1.MouseMove += MouseClickMove;
+            bg2.MouseDown += MouseClickDown;
+            bg2.MouseUp += MouseClickUp;
+            bg2.MouseMove += MouseClickMove;
+
+            // Как выглядит код выше на С++
+            //class Form1 {
+            //private:
+            //POINT pos;
+            //bool dragging, lose;
+            //int countCoins;
+            // public:
+            // Form1() : dragging(false), lose(false), countCoins(0) {
+            // Инициализация состояний элементов интерфейса
+            //labelLoseVisible = false;
+            //btnRestartVisible = false;
+
+            // Привязка обработчиков событий для перемещения формы
+                // bg1.MouseDown += &Form1::MouseClickDown;
+                // bg1.MouseUp += &Form1::MouseClickUp;
+                // bg1.MouseMove += &Form1::MouseClickMove;
+                // bg2.MouseDown += &Form1::MouseClickDown;
+                // bg2.MouseUp += &Form1::MouseClickUp;
+                // bg2.MouseMove += &Form1::MouseClickMove;
+               
+            // Инициализация состояний элементов интерфейса
+                labelLose.Visible = false;
+                btnRestart.Visible = false;
+                KeyPreview = true;
+        }
+
+        // Обработчик событий нажатия клавиши мыши
+        private void MouseClickDown(object sender, MouseEventArgs e) // void MouseClickDown(HWND hwnd, LPARAM lParam) {
+            {
+            dragging = true;
+            pos.X = e.X; // pos.x = GET_X_LPARAM(lParam);
+            pos.Y = e.Y; // pos.y = GET_Y_LPARAM(lParam);
+        }
+
+        // Оработчик события отпускания клавиши мыши
+        private void MouseClickUp(object sender, MouseEventArgs e) //  void MouseClickUp() {
+        {
+            dragging = false;
+        }
+
+        // Обработчик события перемещения мыши
+        private void MouseClickMove(object sender, MouseEventArgs e) //    void MouseClickMove(HWND hwnd, LPARAM lParam) {
+        {
+            if (dragging)
+                // f (dragging) {
+                // POINT currentPoint;
+                //currentPoint.x = GET_X_LPARAM(lParam);
+                //currentPoint.y = GET_Y_LPARAM(lParam);
+            {
+                // Получение текущего положения мыши относительно экрана
+                Point currentPoint = PointToScreen(new Point(e.X, e.Y)); // ScreenToClient(hwnd, &currentPoint);
+
+                //Установка нового положения формы относительно текущего положения мыши
+                this.Location = new Point(currentPoint.X - pos.X, currentPoint.Y - pos.Y + bg1.Top); //SetWindowPos(hwnd, NULL, currentPoint.x - pos.x, currentPoint.y - pos.y + bg1.Top, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+            }
+        }
+
+        // Обработчик события нажатия клавиши на форме 
+        private void Form1_KeyPress(object sender, KeyPressEventArgs e) //void Form1_KeyPress(HWND hwnd, WPARAM wParam) {
+        {
+            // Закрытие формы при нажатии клавиши Escape
+            if (e.KeyChar == (char)Keys.Escape) // if (wParam == VK_ESCAPE)
+            this.Close();                       // DestroyWindow(hwnd);
+        }
+        // Обработчик таймера, отвечающий за движение элементов
+        private void timer_Tick(object sender, EventArgs e) //void timer_Tick() {
+        {
+            int speed = 5;
+
+            // Движение задних фонов
+            bg1.Top += speed;
+            bg2.Top += speed;
+
+            int carSpeed = 7;
+
+            // Движение вражеских машин и монет
+            enemy1.Top += carSpeed;
+            enemy2.Top += carSpeed;
+            coin.Top += speed;
+
+            // Перемещение фоновых изображений, если они достигли нижней границы формы
+
+            if (bg1.Top >= 650)
+            {
+
+                // Зацикливание фоновых изображений
+                bg1.Top = 0;
+                bg2.Top = -650;
+            }
+
+            // Перемещение монеты в случайное место, если она достигла нижней границы формы 
+            if (coin.Top >= 650)
+            {
+                // Перемещение монеты выше формы и установка новой случайной позиции по горизонтали
+                coin.Top = -50;
+                Random rand = new Random();
+                coin.Left = rand.Next(150, 560);
+            }
+
+            // Перемещение вражеской машины 1 в случайное место, если она достигла нижней границы формы 
+            if (enemy1.Top >= 650)
+            {
+
+                // Перемещение вражеской машины выше формы и установка новой случайной позиции по горизонтали
+                enemy1.Top = -130;
+                Random rand = new Random();
+                enemy1.Left = rand.Next(150, 300);
+            }
+
+            // Перемещение вражеской машины 2 в случайное место, если она достигла нижней границы формы 
+            if (enemy2.Top >= 650)
+            {
+
+                // Перемещение вражеской машины выше формы и установка новой случайной позиции по горизонтали
+                enemy2.Top = -400;
+                Random rand = new Random();
+                enemy2.Left = rand.Next(300, 560);
+            }
+
+            // Проверка на столкновение с вражескими машинами
+            if (player.Bounds.IntersectsWith(enemy1.Bounds)
+                 player.Bounds.IntersectsWith(enemy2.Bounds)) //  if (IntersectRect(&player.Bounds, &enemy1.Bounds)  IntersectRect(&player.Bounds, &enemy2.Bounds)) {
+            {
+
+                // Остановка таймера, отображение сообщения о поражении и кнопка перезапуска
+                timer.Enabled = false; // KillTimer(hwnd, TIMER_ID);
+                labelLose.Visible = true; // labelLoseVisible = true;
+                btnRestart.Visible = true; // labelLoseVisible = true;
+                lose = true;
+            }
+
+            // Проверка на сбор монет
+            if (player.Bounds.IntersectsWith(coin.Bounds))
+            {
+
+                // Увеличение счетчика монет, обновление отображения счетчика и перемещение монеты в новую позицию
+                countCoins++;
+                labelCoins.Text = "Монеты: " + countCoins.ToString();
+                coin.Top = -50;
+                Random rand = new Random();
+                coin.Left = rand.Next(150, 560);
+
+
+            }
+        }
+
+        // Обработчик события клика на задний фон 1
+        private void bg1_Click(object sender, EventArgs e) // void bg1_Click() {
+        {
+
+        }
+
+        // обработчик события нажатия клавиши на форме 
+        private void Form1_KeyDown(object sender, KeyEventArgs e) // void Form1_KeyDown(WPARAM wParam) {
+        {
+            // Изменение положения игрока при нажатии клавиши Left/A и  Right/D
+            if (lose) return;
+
+            int speed = 10;
+            if ((e.KeyCode == Keys.Left  e.KeyCode == Keys.A) && player.Left > 150) // if ((wParam == VK_LEFT  wParam == 'A') && player.Left > 150)
+                player.Left -= speed;
+            else if ((e.KeyCode == Keys.Right  e.KeyCode == Keys.D) && player.Right < 700) // else if ((wParam == VK_RIGHT  wParam == 'D') && player.Right < 700)
+                player.Left += speed;
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e) //void btnRestart_Click() {
+        {
+
+        }
+
+// Обработчик события клика на кнопке перезапуска
+        private void btnRestart_Click(object sender, EventArgs e)
+        {
+
+            // Сброс положения вражеских машин, скрытие сообщения о поражении и кнопки перезапуска 
+
+            enemy1.Top = -130;
+            enemy2.Top = -400;
+            labelLose.Visible = false; // labelLoseVisible = false;
+            btnRestart.Visible = false; // btnRestartVisible = false;
+            timer.Enabled = true; // SetTimer(hwnd, TIMER_ID, TIMER_INTERVAL, NULL);
+            lose = false;
+            countCoins = 0;
+            labelCoins.Text = "Монеты: 0 "; //  labelCoinsText = "Монеты: 0 ";
+            coin.Top = -500;
+        }
+    }
+}
